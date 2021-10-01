@@ -1,0 +1,65 @@
+ok
+4 hoeren h1 hoeren h2 studenten s1 studenten s2 
+0 
+4 h1 matrnr s1 matrnr h1 vorlnr h2 vorlnr h2 matrnr s2 matrnr s1 matrnr s2 matrnr 
+1 s1 name Schopenhauer 
+ok
+3 hoeren h studenten s vorlesungen v 
+1 v titel 
+2 h matrnr s matrnr h vorlnr v vorlnr 
+1 s semester 2 
+ok
+4 hoeren h1 hoeren h2 studenten s1 studenten s2 
+0 
+3 h1 matrnr s1 matrnr h1 vorlnr h2 vorlnr h2 matrnr s2 matrnr 
+1 s1 name Schopenhauer 
+ok
+1 vorlesungen v 
+2 v titel v vorlnr 
+0 
+1 v vorlnr 5041 
+ok
+1 vorlesungen v 
+2 v titel v vorlnr 
+0 
+1 v titel Logik 
+ok
+1 vorlesungen v 
+2 v titel v vorlnr 
+0 
+1 v sws 4 
+ok
+1 vorlesungen v 
+2 v titel v vorlnr 
+0 
+2 v vorlnr 5031 v vorlnr 5041 
+err: incorrect SQL
+err: incorrect SQL
+ok
+1 vorlesungen titel 
+1 titel titel 
+0 
+1 titel titel Ethik 
+err: incorrect SQL
+err: incorrect SQL
+err: incorrect SQL
+err: incorrect SQL
+err: incorrect SQL
+err: incorrect SQL
+err: incorrect SQL
+ok
+3 hoeren h studenten s vorlesungen v 
+2 s name v titel 
+2 h matrnr s matrnr h vorlnr v vorlnr 
+0 
+ok
+2 professoren p vorlesungen v 
+2 p name v titel 
+1 p persnr v gelesenvon 
+2 p rang C4 v sws 3 
+ok
+3 assistenten a professoren prof pruefen p 
+2 p note prof raum 
+3 a boss p persnr a boss prof persnr p persnr prof persnr 
+1 p note 2 
+err: incorrect SQL

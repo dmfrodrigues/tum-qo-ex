@@ -1,0 +1,170 @@
+# ---------------------------------------------------------------------------
+# QO
+# ---------------------------------------------------------------------------
+
+stages:
+    - build
+    - test
+    - verify
+
+build_debug:
+    stage: build
+    script: 
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ..
+        - ninja
+    tags:
+        - "ninja"
+        - "cmake"
+    artifacts:
+        paths:
+            - ./build/tester
+            - ./build/IntegrationTester
+        expire_in: 1 hrs
+
+build_release:
+    stage: build
+    script:
+        - mkdir -p buildrel
+        - cd buildrel
+        - cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+        - ninja
+    tags:
+        - "ninja"
+        - "cmake"
+    artifacts:
+        paths:
+            - ./buildrel/IntegrationTester
+        expire_in: 1 hrs
+
+test_integration:
+    stage: test
+    script:
+        - ./build/IntegrationTester /opt/data/qo/uni/uni integrationtests/in.txt
+    artifacts:
+        paths:
+            - ./out.1.txt
+            - ./out.2.txt
+            - ./out.3.txt
+            - ./out.4.txt
+            - ./out.5.txt
+        expire_in: 1 hrs
+    dependencies:
+        - build_debug
+
+test_submit:
+    stage: test
+    script:
+        - /opt/data/qo/submitter.py /opt/data/qo/submission.socket ./buildrel/IntegrationTester > submissionresult.txt
+    artifacts:
+        paths:
+            - submissionresult.txt
+        expire_in: 1 hrs
+    dependencies:
+        - build_release
+
+unit1:
+    stage: verify
+    script:
+        - ./build/tester task1
+    dependencies:
+        - build_debug
+
+unit2:
+    stage: verify
+    script:
+        - ./build/tester task2
+    dependencies:
+        - build_debug
+
+unit3:
+    stage: verify
+    script:
+        - ./build/tester task3
+    dependencies:
+        - build_debug
+
+unit4:
+    stage: verify
+    script:
+        - ./build/tester task4
+    dependencies:
+        - build_debug
+
+unit5:
+    stage: verify
+    script:
+        - ./build/tester task5
+    dependencies:
+        - build_debug
+
+integ1:
+    stage: verify
+    script:
+        - diff ./out.1.txt ./integrationtests/out.1.txt
+    dependencies:
+        - test_integration
+
+integ2:
+    stage: verify
+    script:
+        - diff ./out.2.txt ./integrationtests/out.2.txt
+    dependencies:
+        - test_integration
+
+integ3:
+    stage: verify
+    script:
+        - diff ./out.3.txt ./integrationtests/out.3.txt
+    dependencies:
+        - test_integration
+
+integ4:
+    stage: verify
+    script:
+        - diff ./out.4.txt ./integrationtests/out.4.txt
+    dependencies:
+        - test_integration
+
+integ5:
+    stage: verify
+    script:
+        - diff ./out.5.txt ./integrationtests/out.5.txt
+    dependencies:
+        - test_integration
+
+hidden1:
+    stage: verify
+    script:
+        - grep -q 'Task 1 success' submissionresult.txt
+    dependencies:
+        - test_submit
+
+hidden2:
+    stage: verify
+    script:
+        - grep -q 'Task 2 success' submissionresult.txt
+    dependencies:
+        - test_submit
+
+hidden3:
+    stage: verify
+    script:
+        - grep -q 'Task 3 success' submissionresult.txt
+    dependencies:
+        - test_submit
+
+hidden4:
+    stage: verify
+    script:
+        - grep -q 'Task 4 success' submissionresult.txt
+    dependencies:
+        - test_submit
+
+hidden5:
+    stage: verify
+    script:
+        - grep -q 'Task 5 success' submissionresult.txt
+    dependencies:
+        - test_submit

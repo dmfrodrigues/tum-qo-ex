@@ -1,0 +1,100 @@
+ok
+PROJECTION (SELECT ((SELECT (TABLE SCAN (studenten))) HASH JOIN ((TABLE SCAN (studenten)) HASH JOIN ((TABLE SCAN (hoeren)) HASH JOIN (TABLE SCAN (hoeren))))))
+--result
+27550 Schopenhauer 6 27550 Schopenhauer 6 27550 5001 27550 5001
+27550 Schopenhauer 6 27550 Schopenhauer 6 27550 4052 27550 4052
+--end
+ok
+PROJECTION ((TABLE SCAN (vorlesungen)) HASH JOIN ((SELECT (TABLE SCAN (studenten))) HASH JOIN (TABLE SCAN (hoeren))))
+--result
+Grundzüge
+Ethik
+Mäeutik
+Glaube und Wissen
+Grundzüge
+--end
+ok
+PROJECTION ((SELECT (TABLE SCAN (studenten))) HASH JOIN ((TABLE SCAN (studenten)) HASH JOIN ((TABLE SCAN (hoeren)) HASH JOIN (TABLE SCAN (hoeren)))))
+--result
+27550 Schopenhauer 6 26120 Fichte 10 27550 5001 26120 5001
+27550 Schopenhauer 6 27550 Schopenhauer 6 27550 5001 27550 5001
+27550 Schopenhauer 6 27550 Schopenhauer 6 27550 4052 27550 4052
+27550 Schopenhauer 6 29120 Theophrastos 2 27550 5001 29120 5001
+27550 Schopenhauer 6 29555 Feuerbach 2 27550 5001 29555 5001
+--end
+ok
+PROJECTION (SELECT (TABLE SCAN (vorlesungen)))
+--result
+5041 Ethik
+--end
+ok
+PROJECTION (SELECT (TABLE SCAN (vorlesungen)))
+--result
+4052 Logik
+--end
+ok
+PROJECTION (SELECT (TABLE SCAN (vorlesungen)))
+--result
+5001 Grundzüge
+5041 Ethik
+4052 Logik
+4630 Die 3 Kritiken
+--end
+ok
+PROJECTION (SELECT (SELECT (TABLE SCAN (vorlesungen))))
+--result
+--end
+ok
+EMPTY
+ok
+EMPTY
+ok
+PROJECTION (SELECT (TABLE SCAN (vorlesungen)))
+--result
+Ethik
+--end
+ok
+EMPTY
+ok
+EMPTY
+ok
+EMPTY
+ok
+EMPTY
+ok
+EMPTY
+ok
+EMPTY
+ok
+EMPTY
+ok
+PROJECTION ((TABLE SCAN (vorlesungen)) HASH JOIN ((TABLE SCAN (studenten)) HASH JOIN (TABLE SCAN (hoeren))))
+--result
+Fichte Grundzüge
+Schopenhauer Grundzüge
+Schopenhauer Logik
+Carnap Ethik
+Carnap Wissenschaftstheorie
+Carnap Bioethik
+Carnap Der Wiener Kreis
+Theophrastos Grundzüge
+Theophrastos Ethik
+Theophrastos Mäeutik
+Feuerbach Glaube und Wissen
+Jonas Glaube und Wissen
+Feuerbach Grundzüge
+--end
+ok
+PROJECTION ((SELECT (TABLE SCAN (vorlesungen))) HASH JOIN (SELECT (TABLE SCAN (professoren))))
+--result
+Russel Wissenschaftstheorie
+Russel Erkenntnistheorie
+--end
+ok
+PROJECTION (SELECT ((SELECT (TABLE SCAN (pruefen))) HASH JOIN ((TABLE SCAN (assistenten)) HASH JOIN (TABLE SCAN (professoren)))))
+--result
+226 2
+226 2
+--end
+ok
+EMPTY

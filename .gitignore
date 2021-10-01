@@ -1,0 +1,11 @@
+/.vscode/
+/.vs/
+/_build/
+/build/
+/.idea/
+/bin/
+/cmake-build-*/
+/data/
+/tests/tests.log
+*.stackdump
+tmp.db*
