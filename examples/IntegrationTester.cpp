@@ -5,6 +5,7 @@
 #include "QueryGraph.hpp"
 #include "operator/Printer.hpp"
 #include "operator/Tablescan.hpp"
+#include <algorithm>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
