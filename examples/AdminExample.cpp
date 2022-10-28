@@ -71,7 +71,7 @@ static void dropTable(const string& dbName, const string& tableName)
    cout << "ok" << endl;
 }
 //---------------------------------------------------------------------------
-static void insertValues(const string& dbName, const string& tableName, size_t count, char* rest[])
+static void insertValues(const string& dbName, const string& tableName, unsigned count, char* rest[])
 // Insert values into a database
 {
    Database db;
@@ -87,7 +87,7 @@ static void insertValues(const string& dbName, const string& tableName, size_t c
    }
 
    vector<Register> values;
-   for (size_t index = 0; index < count; index++) {
+   for (unsigned index = 0; index < count; index++) {
       Register r;
       const Attribute& a = table.getAttribute(index);
       switch (a.getType()) {

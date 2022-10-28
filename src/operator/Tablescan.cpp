@@ -1,6 +1,8 @@
 #include "operator/Tablescan.hpp"
 #include "Table.hpp"
+#include <cassert>
 #include <cstdlib>
+#include <ostream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -34,14 +36,15 @@ bool Tablescan::next()
             [[maybe_unused]] auto ind = table.io.tellg();
             table.io.seekg(filePos, ios_base::beg);
             table.io.read(buffer, bufferSize);
-            unsigned len = table.io.gcount();
+            auto len = table.io.gcount();
             if (len < 1) {
                table.io.clear();
                return false;
             }
             bufferStart = 0;
-            bufferStop = len;
-            filePos += len;
+            assert(static_cast<size_t>(filePos) + len <= ~0u);
+            bufferStop = static_cast<unsigned>(len);
+            filePos = static_cast<unsigned>(filePos + len);
          }
          char c = buffer[bufferStart++];
          if (escape) {

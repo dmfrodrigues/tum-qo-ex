@@ -1,4 +1,5 @@
 #include "operator/Chi.hpp"
+#include <ostream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -104,7 +105,7 @@ void Chi::cast(const Register& a, Register::State state, Register& result)
          break;
       case Register::State::Double:
          switch (state) {
-            case Register::State::Int: result.setInt(a.getDouble()); break;
+            case Register::State::Int: result.setInt(static_cast<Register::int_t>(a.getDouble())); break;
             case Register::State::Double: result.setDouble(a.getDouble()); break;
             case Register::State::Unbound:
             case Register::State::Bool:

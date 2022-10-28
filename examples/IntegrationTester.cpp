@@ -43,7 +43,7 @@ static void queryDb(Database& db, const string& query)
       {
          auto vs = jq.joinConditions;
          for (auto& r : vs) {
-            if (r.first > r.second)
+            if (r.second < r.first)
                swap(r.first, r.second);
          }
 
@@ -177,12 +177,16 @@ static int integrationTesterMain(int argc, char* argv[])
       return 1;
    }
 
+   cerr << "Hello world" << endl;
+
    /// TODO: Enter your matriculation numbers here!
    vector<string> matrNr{ "01234567", "07654321" };
 
    for (auto& m : matrNr)
       cout << m << " ";
    cout << endl;
+
+   cerr << "Hi again world" << endl;
 
    string dbName = argv[1], testFile = argv[2];
    {
@@ -195,6 +199,8 @@ static int integrationTesterMain(int argc, char* argv[])
       }
       runTests(db, tf);
    }
+
+   cerr << "Goodbye world" << endl;
    return 0;
 }
 //---------------------------------------------------------------------------

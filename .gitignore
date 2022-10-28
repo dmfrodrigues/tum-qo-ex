@@ -9,3 +9,5 @@
 /tests/tests.log
 *.stackdump
 tmp.db*
+/out/
+CMakeSettings.json

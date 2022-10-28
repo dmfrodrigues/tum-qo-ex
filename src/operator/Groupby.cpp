@@ -2,6 +2,7 @@
 #include "operator/Chi.hpp"
 #include "operator/Groupby.hpp"
 #include <cassert>
+#include <ostream>
 #include <unordered_set>
 //---------------------------------------------------------------------------
 using namespace std;
@@ -25,7 +26,7 @@ namespace {
 //---------------------------------------------------------------------------
 struct CountStarLogic : Groupby::AggregationLogic {
    /// The count
-   int64_t count = 0;
+   typename Register::int_t count = 0;
 
    /// Open
    void open() override { count = 0; }
@@ -37,7 +38,7 @@ struct CountStarLogic : Groupby::AggregationLogic {
 //---------------------------------------------------------------------------
 struct CountLogic : Groupby::AggregationLogic {
    /// The count
-   int64_t count = 0;
+   typename Register::int_t count = 0;
 
    /// Open
    void open() override { count = 0; }
@@ -56,7 +57,7 @@ struct CountDistinctLogic : Groupby::AggregationLogic {
    /// Add
    void add(const Register* reg) override { if (!reg->isUnbound()) values.insert(*reg); }
    /// Close
-   void close(Register& result) override { result.setInt(values.size()); }
+   void close(Register& result) override { result.setInt(static_cast<typename Register::int_t>(values.size())); }
 };
 //---------------------------------------------------------------------------
 template <typename Func>

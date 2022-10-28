@@ -1,5 +1,6 @@
 #include "operator/Indexscan.hpp"
 #include <cstdlib>
+#include <ostream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -71,12 +72,12 @@ bool Indexscan::next()
    // Read the tuple
    bufferStart = bufferStop = 0;
    bool escape = false;
-   for (unsigned index = 0, limit = output.size(); index < limit; ++index) {
+   for (size_t index = 0, limit = output.size(); index < limit; ++index) {
       buf.resize(0);
       while (true) {
          if (bufferStart >= bufferStop) {
             table.io.seekg(filePos, ios_base::beg);
-            int len = table.io.readsome(buffer, bufferSize);
+            int len = static_cast<int>(table.io.readsome(buffer, bufferSize));
             if (len < 1) {
                table.io.clear();
                return false;

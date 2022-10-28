@@ -57,7 +57,7 @@ struct JoinQuery {
       /// Equality
       auto operator==(const Relation& o) const { return std::tie(table, binding) == std::tie(o.table, o.binding); }
       /// Comparison
-      auto operator<=>(const Relation& o) const { return std::tie(table, binding) <=> std::tie(o.table, o.binding); }
+      auto operator<(const Relation& o) const { return std::tie(table, binding) < std::tie(o.table, o.binding); }
    };
    /// Binding and attribute
    struct BindingAttribute {
@@ -69,7 +69,7 @@ struct JoinQuery {
       /// Equality
       auto operator==(const BindingAttribute& o) const { return std::tie(binding, attribute) == std::tie(o.binding, o.attribute); }
       /// Comparison
-      auto operator<=>(const BindingAttribute& o) const { return std::tie(binding, attribute) <=> std::tie(o.binding, o.attribute); }
+      auto operator<(const BindingAttribute& o) const { return std::tie(binding, attribute) < std::tie(o.binding, o.attribute); }
    };
    /// Value of a constant
    using Constant = Register;

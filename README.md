@@ -40,7 +40,7 @@ After you complete your implementation, run our tests to see if you have any err
 
 `ninja check`
 
-#### Example build with CLion 2018.2
+#### Example build with CLion 2022.2
 
 * Import Project From Sources (enter the directory where you cloned your fork).
 * Open Existing Project.
@@ -55,22 +55,17 @@ _Debugging_
 * The execution will stop at the first line, where you placed your breakpoint.
 * Enjoy!
 
-#### Example build with Microsoft Visual Studio 2017
+#### Example build with Microsoft Visual Studio 2022
 
 * Make sure you have installed basic C++ support and C++ tools for CMake.
-* File -> Open -> CMake
-* Choose the CMakeLists.txt under the directory where you cloned your fork
+* File -> Open -> Folder
+* Choose the project directory with CMakeLists.txt
 * Wait for Visual Studio to configure itself.
-* Use "CMake -> Build Only -> uni" to build the dataset.
-* Use "CMake -> Build All" to build all the executables.
-* Use "Test -> Windows -> Test Explorer" to open the testing window. Use "Run All" to run the test. Double click to view the details. You can also use "CMake -> Build Only -> checker" to run the tests.
-
-_Debugging_
-
-* Open `examples/ChiExample.cpp` and put a breakpoint on the first line under `main()` (`Database db;`).
-* Choose ChiExample.exe from the dropdown menu next to the run button.
-* The execution will stop at the first line, where you placed your breakpoint.
-* Enjoy!
+* Go to "Solution Explorer -> Switch between solutions and available views > CMake Targets View"
+* Here you can see all the CMake targets
+* Use "uni (right click) -> Build" to build the dataset.
+* Use "Build -> Build All" to build all the executables.
+* Use "tester (right click) -> Debug" to run and debug the tester (and similarly other targets).
 
 ### src/
 

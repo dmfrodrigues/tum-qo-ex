@@ -1,6 +1,6 @@
 #include "operator/Printer.hpp"
 #include "Register.hpp"
-#include <iostream>
+#include <ostream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------

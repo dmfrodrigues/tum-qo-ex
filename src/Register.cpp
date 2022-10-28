@@ -17,16 +17,19 @@ bool Register::operator==(const Register& r) const
    return values == r.values;
 }
 //---------------------------------------------------------------------------
-std::partial_ordering Register::operator<=>(const Register& r) const
+bool Register::operator<(const Register& r) const
 // Comparison
 {
    // Make sure that the state is the same
    if (values.index() != r.values.index())
-      return values.index() <=> r.values.index();
+      return values.index() < r.values.index();
 
    // Compare
-   return visit([&]<typename T>(const T& v) -> std::partial_ordering {
-      return v <=> get<T>(r.values);
+   return visit([&]<typename T>(const T& v) -> bool {
+      if constexpr (std::same_as<T, std::monostate>)
+         return false;
+      else
+         return v < get<T>(r.values);
    }, values);
 }
 //---------------------------------------------------------------------------

@@ -137,7 +137,7 @@ void Table::read(istream& in)
       cerr << "unable to open " << indexFile << endl;
       throw runtime_error("cannot read index");
    }
-   for (unsigned index = 0, limit = attributes.size(); index < limit; ++index)
+   for (size_t index = 0, limit = attributes.size(); index < limit; ++index)
       if (attributes[index].key || attributes[index].index)
          readIndex(indicesIn, indices[index], attributes[index].type, cardinality);
    indicesIn.close();
@@ -148,7 +148,7 @@ void Table::read(istream& in)
 static void writeIndex(ostream& out, map<Register, unsigned>& index, Attribute::Type type)
 // Write an index
 {
-   unsigned count = index.size();
+   auto count = static_cast<unsigned>(index.size());
    out.write(reinterpret_cast<char*>(&count), sizeof(count));
 
    switch (type) {
@@ -176,7 +176,7 @@ static void writeIndex(ostream& out, map<Register, unsigned>& index, Attribute::
       case Attribute::Type::String:
          for (const auto& [reg, pos] : index) {
             const string& val = reg.getString();
-            unsigned valLen = val.length();
+            auto valLen = static_cast<unsigned>(val.length());
             out.write(reinterpret_cast<const char*>(&valLen), sizeof(valLen));
             out.write(val.data(), valLen);
             out.write(reinterpret_cast<const char*>(&pos), sizeof(pos));
@@ -198,7 +198,7 @@ void Table::write(ostream& out)
       cerr << "unable to write " << indexFile << endl;
       throw;
    }
-   for (unsigned index = 0, limit = attributes.size(); index < limit; ++index)
+   for (size_t index = 0, limit = attributes.size(); index < limit; ++index)
       if (attributes[index].key || attributes[index].index)
          writeIndex(indicesOut, indices[index], attributes[index].type);
    indicesOut.close();
@@ -222,8 +222,8 @@ void Table::insertValues(std::span<const Register> values)
    if (!io)
       throw runtime_error("table IO error");
 
-   unsigned pos = io.tellg();
-   for (unsigned index = 0, limit = attributes.size(); index < limit; ++index) {
+   auto pos = static_cast<unsigned>(io.tellg());
+   for (size_t index = 0, limit = attributes.size(); index < limit; ++index) {
       if (index) io << ';';
       const Register& v = values[index];
       switch (v.getState()) {
@@ -285,7 +285,7 @@ void Table::runStats()
          case Attribute::Type::Double: res.size = &eight; break;
          case Attribute::Type::Bool: res.size = &one; break;
          case Attribute::Type::String: {
-            auto chi = make_unique<Chi>(move(gb->input), [](const Register& a, const Register&, Register& result) { result.setDouble(a.getString().length()); }, output[index], &empty);
+            auto chi = make_unique<Chi>(move(gb->input), [](const Register& a, const Register&, Register& result) { result.setDouble(static_cast<double>(a.getString().length())); }, output[index], &empty);
             res.size = gb->addAggregation({Groupby::AggregationType::Avg, chi->getResult()});
             gb->input = move(chi);
             break;
@@ -312,9 +312,9 @@ void Table::runStats()
 int Table::findAttribute(std::string_view name) const
 // Search for a specific attribute
 {
-   for (unsigned index = 0, limit = attributes.size(); index < limit; ++index)
+   for (size_t index = 0, limit = attributes.size(); index < limit; ++index)
       if (attributes[index].getName() == name)
-         return index;
+         return static_cast<int>(index);
    return -1;
 }
 //---------------------------------------------------------------------------

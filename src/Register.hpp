@@ -70,7 +70,7 @@ class Register {
    /// Comparison
    [[nodiscard]] bool operator==(const Register& r) const;
    /// Comparison
-   [[nodiscard]] std::partial_ordering operator<=>(const Register& r) const;
+   [[nodiscard]] bool operator<(const Register& r) const;
    /// Hash
    [[nodiscard]] uint64_t getHash() const;
    /// Hash

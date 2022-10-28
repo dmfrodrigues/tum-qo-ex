@@ -2,6 +2,7 @@
 #define H_Table
 //---------------------------------------------------------------------------
 #include "Attribute.hpp"
+#include <cassert>
 #include <fstream>
 #include <map>
 #include <span>
@@ -69,7 +70,10 @@ class Table {
    /// The cardinality
    [[nodiscard]] unsigned getCardinality() const { return cardinality; }
    /// The number of attributes
-   [[nodiscard]] unsigned getAttributeCount() const { return attributes.size(); }
+   [[nodiscard]] unsigned getAttributeCount() const {
+      assert(attributes.size() <= ~0u);
+      return static_cast<unsigned>(attributes.size());
+   }
    /// A specific attribute
    [[nodiscard]] const Attribute& getAttribute(unsigned index) const { return attributes[index]; }
    /// Search for a specific attribute. Returns -1 if attribute does not exist
