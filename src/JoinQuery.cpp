@@ -1,7 +1,12 @@
 #include "Config.hpp"
 #include "Database.hpp"
 #include "JoinQuery.hpp"
+#include "operator/CrossProduct.hpp"
+#include "operator/Printer.hpp"
+#include "operator/Projection.hpp"
+#include "operator/Selection.hpp"
 #include "operator/Operator.hpp"
+#include "operator/Tablescan.hpp"
 #include <unordered_map>
 //---------------------------------------------------------------------------
 using namespace std;
@@ -388,7 +393,84 @@ JoinQuery JoinQuery::parseAndAnalyseJoinQuery(Database& db, std::string_view sql
 OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 // Build a (right-deep) canonical operator tree from the join query with pushed down predicates
 {
-   throw NotImplementedError{"should be implemented for task 2"};
+   if(relations.empty()){
+      return OperatorTree(nullptr, vector<unique_ptr<Register>>());
+   }
+
+   vector<std::unique_ptr<Register>> constants;
+
+   map<std::string, Tablescan*> tables;
+
+   // Relations
+
+
+   Table& table = db.getTable(relations.back().table);
+
+   Tablescan* rightChildPtr = new Tablescan(table);
+
+   unique_ptr<Operator> root(rightChildPtr);
+
+   tables[relations.back().binding] = rightChildPtr;
+
+   // Relations
+   for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
+      Table& table = db.getTable(it -> table);
+      Tablescan* leftChildPtr = new Tablescan(table);
+
+      unique_ptr<Operator> leftChild(leftChildPtr);
+
+      tables[it -> binding] = leftChildPtr;
+
+      root = make_unique<CrossProduct>(move(leftChild), move(root));
+   }
+
+   // Selections
+   for(auto it = selections.rbegin(); it != selections.rend(); ++it) {
+      const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
+      constants.emplace_back(make_unique<Register>());
+      Register* rhs = constants.back().get();
+
+      switch(it->second.getState()) {
+         case Register::State::Bool: rhs->setBool(it->second.getBool()); break;
+         case Register::State::Int: rhs->setInt(it->second.getInt()); break;
+         case Register::State::Double: rhs->setDouble(it->second.getDouble()); break;
+         case Register::State::String: rhs->setString(it->second.getString()); break;
+         default: throw logic_error("State not allowed");
+      }
+
+      root = make_unique<Selection>(move(root), lhs, rhs);
+   }
+
+   // Joins
+   for(auto it = joinConditions.rbegin(); it != joinConditions.rend(); ++it) {
+      const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
+      const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+      root = make_unique<Selection>(move(root), lhs, rhs);
+   }
+
+   // Projection
+   vector<const Register*> projectRegisters(projection.size());
+   for(int i = 0; i < projection.size(); ++i){
+      projectRegisters.at(i) = tables.at(projection.at(i).binding)->getOutput(projection.at(i).attribute);
+   }
+
+   root = make_unique<Projection>(move(root), projectRegisters);
+
+
+   /*
+   Printer out(move(root), cout);
+   out.open();
+   while (out.next());
+   out.close();
+   */
+
+   return OperatorTree(move(root), move(constants));
+
+
+
+
+
+
 }
 }
 //---------------------------------------------------------------------------
