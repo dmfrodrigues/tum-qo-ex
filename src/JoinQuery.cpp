@@ -504,12 +504,14 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
    }
    */
    // Projection
-   vector<const Register*> projectRegisters(projection.size());
-   for(int i = 0; i < projection.size(); ++i){
-      projectRegisters.at(i) = tables.at(projection.at(i).binding)->getOutput(projection.at(i).attribute);
-   }
+   if(!projection.empty()){
+      vector<const Register*> projectRegisters(projection.size());
+      for(int i = 0; i < projection.size(); ++i){
+         projectRegisters.at(i) = tables.at(projection.at(i).binding)->getOutput(projection.at(i).attribute);
+      }
 
-   root = make_unique<Projection>(move(root), projectRegisters);
+      root = make_unique<Projection>(move(root), projectRegisters);
+   }
 
    //root ->printTree(cout);
    /*
