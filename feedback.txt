@@ -1,0 +1,10 @@
+Sheet01(6/10)
+1.1 (0/4)
+Missing
+1.2 (6/6)
+
+Sheet02 (9.5/10)
+2.1 (4/4)
+2.2 (4/4)
+2.3 (1.5/2)
+Your assumptions are inconsistent. If we are paying for access time for every page when reading S, why aren't we paying it per page when reading a block from R? -0.5P
