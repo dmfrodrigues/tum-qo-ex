@@ -455,18 +455,27 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
       // Joins
       auto out = root->getOutput();
       set<const Register*> outSet(out.begin(), out.end());
-
       bool isJoin = false;
+
       for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ++it){
             if(tables.count(it -> first.binding) && tables.count(it -> second.binding)){
-               isJoin = true;
+
                const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
                const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+
+               if(leftChild->containsRegister(rhs)){
+                  swap(lhs, rhs);
+               }
                root = make_unique<HashJoin>(move(leftChild), move(root), lhs, rhs);
 
                joinConditionsCopy.erase(it);
+               isJoin = true;
                break;
             }
+      }
+
+      if(!isJoin){
+         root = make_unique<CrossProduct>(move(leftChild), move(root));
       }
 
       for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ){
@@ -481,9 +490,6 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
             }
       }
 
-      if(!isJoin){
-            root = make_unique<CrossProduct>(move(leftChild), move(root));
-      }
    }
 
 
@@ -497,7 +503,6 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
       root = make_unique<Selection>(move(root), lhs, rhs);
    }
    */
-
    // Projection
    vector<const Register*> projectRegisters(projection.size());
    for(int i = 0; i < projection.size(); ++i){
@@ -506,17 +511,15 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 
    root = make_unique<Projection>(move(root), projectRegisters);
 
-   OperatorTree tree (move(root), move(constants));
-   // Push down Join Relations
-
-
-
+   //root ->printTree(cout);
    /*
    Printer out(move(root), cout);
    out.open();
    while (out.next());
    out.close();
    */
+   OperatorTree tree (move(root), move(constants));
+   // Push down Join Relations
 
    return tree;
 

@@ -29,7 +29,6 @@ class Operator {
    /// Print operator tree
    virtual void printTree(std::ostream& out) const = 0;
 
-   private:
    bool containsRegister(const Register *r) const;
 };
 //---------------------------------------------------------------------------
