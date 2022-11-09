@@ -8,6 +8,7 @@
 #include "operator/Operator.hpp"
 #include "operator/Tablescan.hpp"
 #include <unordered_map>
+#include <list>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -390,6 +391,24 @@ JoinQuery JoinQuery::parseAndAnalyseJoinQuery(Database& db, std::string_view sql
    return jq;
 }
 //---------------------------------------------------------------------------
+void JoinQuery::applySelections(Tablescan *tablescan, unique_ptr<Operator> &tree, const list<pair<BindingAttribute, Constant>> &selections, vector<unique_ptr<Register>> &constants) const {
+   for(const auto &p: selections){
+      const Register* lhs = tablescan->getOutput(p.first.attribute);
+      constants.emplace_back(make_unique<Register>());
+      Register* rhs = constants.back().get();
+
+      switch(p.second.getState()) {
+         case Register::State::Bool: rhs->setBool(p.second.getBool()); break;
+         case Register::State::Int: rhs->setInt(p.second.getInt()); break;
+         case Register::State::Double: rhs->setDouble(p.second.getDouble()); break;
+         case Register::State::String: rhs->setString(p.second.getString()); break;
+         default: throw logic_error("State not allowed");
+      }
+
+      tree = make_unique<Selection>(move(tree), lhs, rhs);
+   }
+}
+
 OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 // Build a (right-deep) canonical operator tree from the join query with pushed down predicates
 {
@@ -401,18 +420,24 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 
    map<std::string, Tablescan*> tables;
 
+   // Pre-process selections
+   map<string, list<pair<BindingAttribute, Constant>>> selectionsMap;
+   for(auto it = selections.rbegin(); it != selections.rend(); ++it) {
+      selectionsMap[it->first.binding].push_back(*it);
+   }
+
    // Relations
-
-
    Table& table = db.getTable(relations.back().table);
-
    Tablescan* rightChildPtr = new Tablescan(table);
 
    unique_ptr<Operator> root(rightChildPtr);
 
    tables[relations.back().binding] = rightChildPtr;
 
-   // Relations
+   // Apply selections
+   applySelections(rightChildPtr, root, selectionsMap[relations.back().binding], constants);
+
+   // Relations (and apply selections)
    for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
       Table& table = db.getTable(it -> table);
       Tablescan* leftChildPtr = new Tablescan(table);
@@ -421,24 +446,9 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 
       tables[it -> binding] = leftChildPtr;
 
+      applySelections(leftChildPtr, leftChild, selectionsMap[it->binding], constants);
+
       root = make_unique<CrossProduct>(move(leftChild), move(root));
-   }
-
-   // Selections
-   for(auto it = selections.rbegin(); it != selections.rend(); ++it) {
-      const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
-      constants.emplace_back(make_unique<Register>());
-      Register* rhs = constants.back().get();
-
-      switch(it->second.getState()) {
-         case Register::State::Bool: rhs->setBool(it->second.getBool()); break;
-         case Register::State::Int: rhs->setInt(it->second.getInt()); break;
-         case Register::State::Double: rhs->setDouble(it->second.getDouble()); break;
-         case Register::State::String: rhs->setString(it->second.getString()); break;
-         default: throw logic_error("State not allowed");
-      }
-
-      root = make_unique<Selection>(move(root), lhs, rhs);
    }
 
    // Joins

@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <list>
 //---------------------------------------------------------------------------
 namespace tinydb {
 //---------------------------------------------------------------------------
@@ -88,6 +89,9 @@ struct JoinQuery {
 
    /// Build a (right-deep) canonical operator tree from the join query with pushed down predicates
    OperatorTree buildCanonicalTree(Database& db) const;
+
+private:
+   void applySelections(Tablescan *tablescan, std::unique_ptr<Operator> &tree, const std::list<std::pair<BindingAttribute, Constant>> &selections, std::vector<std::unique_ptr<Register>> &constants) const;
 };
 //---------------------------------------------------------------------------
 }
