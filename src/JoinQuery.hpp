@@ -2,6 +2,7 @@
 #define H_SQLParser
 //---------------------------------------------------------------------------
 #include "Register.hpp"
+#include "operator/Tablescan.hpp"
 #include <memory>
 #include <string>
 #include <string_view>

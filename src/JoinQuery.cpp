@@ -1,14 +1,16 @@
+#include "JoinQuery.hpp"
 #include "Config.hpp"
 #include "Database.hpp"
-#include "JoinQuery.hpp"
 #include "operator/CrossProduct.hpp"
+#include "operator/Operator.hpp"
 #include "operator/Printer.hpp"
 #include "operator/Projection.hpp"
 #include "operator/Selection.hpp"
-#include "operator/Operator.hpp"
 #include "operator/Tablescan.hpp"
-#include <unordered_map>
+#include "operator/HashJoin.hpp"
 #include <list>
+#include <set>
+#include <unordered_map>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -437,6 +439,8 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
    // Apply selections
    applySelections(rightChildPtr, root, selectionsMap[relations.back().binding], constants);
 
+   auto joinConditionsCopy = joinConditions;
+
    // Relations (and apply selections)
    for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
       Table& table = db.getTable(it -> table);
@@ -448,15 +452,51 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 
       applySelections(leftChildPtr, leftChild, selectionsMap[it->binding], constants);
 
-      root = make_unique<CrossProduct>(move(leftChild), move(root));
+      // Joins
+      auto out = root->getOutput();
+      set<const Register*> outSet(out.begin(), out.end());
+
+      bool isJoin = false;
+      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ++it){
+            if(tables.count(it -> first.binding) && tables.count(it -> second.binding)){
+               isJoin = true;
+               const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
+               const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+               root = make_unique<HashJoin>(move(leftChild), move(root), lhs, rhs);
+
+               joinConditionsCopy.erase(it);
+               break;
+            }
+      }
+
+      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ){
+            if(tables.count(it -> first.binding) && tables.count(it -> second.binding)){
+               const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
+               const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+               root = make_unique<Selection>(move(root), lhs, rhs);
+
+               it = joinConditionsCopy.erase(it);
+            } else {
+               ++it;
+            }
+      }
+
+      if(!isJoin){
+            root = make_unique<CrossProduct>(move(leftChild), move(root));
+      }
    }
 
+
+
+
+   /*
    // Joins
    for(auto it = joinConditions.rbegin(); it != joinConditions.rend(); ++it) {
       const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
       const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
       root = make_unique<Selection>(move(root), lhs, rhs);
    }
+   */
 
    // Projection
    vector<const Register*> projectRegisters(projection.size());
@@ -466,6 +506,10 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
 
    root = make_unique<Projection>(move(root), projectRegisters);
 
+   OperatorTree tree (move(root), move(constants));
+   // Push down Join Relations
+
+
 
    /*
    Printer out(move(root), cout);
@@ -474,7 +518,7 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
    out.close();
    */
 
-   return OperatorTree(move(root), move(constants));
+   return tree;
 
 
 
