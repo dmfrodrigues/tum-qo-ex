@@ -8,3 +8,9 @@ Sheet02 (9.5/10)
 2.2 (4/4)
 2.3 (1.5/2)
 Your assumptions are inconsistent. If we are paying for access time for every page when reading S, why aren't we paying it per page when reading a block from R? -0.5P
+
+Sheet03 (5.5/10)
+3.1 (3.5/4)
+X key: This would make sense if Y was key, not X. -0.5P
+3.2 (2/2)
+3.3 (0/4)
