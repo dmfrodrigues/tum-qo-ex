@@ -335,6 +335,7 @@ struct SqlParser {
 JoinQuery JoinQuery::parseAndAnalyseJoinQuery(Database& db, std::string_view sql)
 // Parse and analyze a sql join query
 {
+    cout << sql << endl;
    JoinQuery jq;
    SqlParser parser{sql};
    parser.readSql2(jq);
