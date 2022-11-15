@@ -19,7 +19,38 @@ struct OptimizerResult {
 struct QueryGraph {
    /// TODO: Implement query graph
 
+
+   using BindingName = std::string;
+   using AttributeName = std::string;
+
+   struct Node {
+      BindingName name;
+      Table& table;
+      std::vector<std::pair<JoinQuery::BindingAttribute, JoinQuery::Constant>> predicates;
+
+      double getCardinality();
+
+      // Constructor
+      explicit Node(std::string name, Table& table, std::vector<std::pair<JoinQuery::BindingAttribute, JoinQuery::Constant>> predicates) noexcept;
+   };
+
+   struct Edge {
+      std::pair<Node&, AttributeName> one;
+      std::pair<Node&, AttributeName> two;
+
+      double getSelectivity();
+
+      // Constructor
+      explicit Edge(std::pair<Node&, AttributeName> first, std::pair<Node&, AttributeName> second) noexcept;
+   };
+
+
    public:
+
+   std::map<std::string, Node> nodes;
+   std::map<std::string, std::vector<Edge>> adjacencyList;
+   std::vector<Edge> edges;
+
    /// Get the cardinality of a relation after selection pushdown according to the formulae we learned in the exercises. Return -1 if binding does not exist.
    double getCardinality(const std::string& binding);
    /// Get the selectivity of a join between two relations according to the formulae we learned in the exercises
