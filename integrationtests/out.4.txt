@@ -1,12 +1,12 @@
 ok
-cost: 0.21
+cost: 2.96
 PROJECTION (SELECT ((((SELECT (TABLE SCAN (studenten))) HASH JOIN (TABLE SCAN (studenten))) HASH JOIN (TABLE SCAN (hoeren))) HASH JOIN (TABLE SCAN (hoeren))))
 --result
 27550 Schopenhauer 6 27550 Schopenhauer 6 27550 5001 27550 5001
 27550 Schopenhauer 6 27550 Schopenhauer 6 27550 4052 27550 4052
 --end
 ok
-cost: 0.26
+cost: 3.71
 PROJECTION (((SELECT (TABLE SCAN (studenten))) HASH JOIN (TABLE SCAN (hoeren))) HASH JOIN (TABLE SCAN (vorlesungen)))
 --result
 Grundzüge
@@ -16,7 +16,7 @@ Mäeutik
 Glaube und Wissen
 --end
 ok
-cost: 0.16
+cost: 6.91
 PROJECTION ((((SELECT (TABLE SCAN (studenten))) HASH JOIN (TABLE SCAN (hoeren))) HASH JOIN (TABLE SCAN (hoeren))) HASH JOIN (TABLE SCAN (studenten)))
 --result
 27550 Schopenhauer 6 26120 Fichte 10 27550 5001 26120 5001
@@ -103,15 +103,15 @@ Jonas Glaube und Wissen
 Feuerbach Grundzüge
 --end
 ok
-cost: 0.00
-PROJECTION ((SELECT (TABLE SCAN (professoren))) HASH JOIN (SELECT (TABLE SCAN (vorlesungen))))
+cost: 1.67
+PROJECTION ((SELECT (TABLE SCAN (vorlesungen))) HASH JOIN (SELECT (TABLE SCAN (professoren))))
 --result
-Russel Erkenntnistheorie
 Russel Wissenschaftstheorie
+Russel Erkenntnistheorie
 --end
 ok
-cost: 0.00
-PROJECTION (SELECT (((SELECT (TABLE SCAN (pruefen))) HASH JOIN (TABLE SCAN (assistenten))) HASH JOIN (TABLE SCAN (professoren))))
+cost: 1.82
+PROJECTION (SELECT (((SELECT (TABLE SCAN (pruefen))) HASH JOIN (TABLE SCAN (professoren))) HASH JOIN (TABLE SCAN (assistenten))))
 --result
 226 2
 226 2
