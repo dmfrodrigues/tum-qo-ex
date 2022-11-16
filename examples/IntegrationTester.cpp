@@ -180,7 +180,7 @@ static int integrationTesterMain(int argc, char* argv[])
    cerr << "Hello world" << endl;
 
    /// TODO: Enter your matriculation numbers here!
-   vector<string> matrNr{ "01234567", "07654321" };
+   vector<string> matrNr{ "03741982", "03770446" };
 
    for (auto& m : matrNr)
       cout << m << " ";
