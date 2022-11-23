@@ -160,12 +160,8 @@ void QueryGraph::mergePlans(
 OptimizerResult QueryGraph::runGOO(Database& db)
 // Run greedy operator ordering. Left side of the join should be the smaller side. You can assume number of relations < 64
 {
-   // cerr << __LINE__ << endl;
-   // cerr << "joinQuery, size=" << joinQuery.selections.size() << endl;
-   // for(const auto &s: joinQuery.selections){
-   //    cerr << s.first.binding << endl;
-   // }
-   // cerr << __LINE__ << endl;
+   if(nodes.size() == 0)
+      return OptimizerResult{0.0, OperatorTree(nullptr, {})};
 
    map<int, string> id2binding;
 
