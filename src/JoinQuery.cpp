@@ -505,7 +505,10 @@ OperatorTree JoinQuery::buildOperatorTree(Database& db, const Plan *plan) const{
          projectRegisters.at(i) = tables.at(projection.at(i).binding)->getOutput(projection.at(i).attribute);
       }
    } else {
-      projectRegisters = root->getOutput();
+      for(auto it = selections.begin(); it != selections.end(); ++it) {
+         const auto &out = tables.at(it->first.binding)->getOutput();
+         projectRegisters.insert(projectRegisters.end(), out.begin(), out.end());
+      }
    }
 
    root = make_unique<Projection>(move(root), projectRegisters);
