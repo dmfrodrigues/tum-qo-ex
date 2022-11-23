@@ -411,16 +411,68 @@ void JoinQuery::applySelections(Tablescan *tablescan, unique_ptr<Operator> &tree
    }
 }
 
-OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
-// Build a (right-deep) canonical operator tree from the join query with pushed down predicates
-{
-   if(relations.empty()){
-      return OperatorTree(nullptr, vector<unique_ptr<Register>>());
+unique_ptr<Operator> JoinQuery::recursivePlanToOperator(
+   const Plan *plan,
+   const map<string, Tablescan*> &tables,
+   map<string, unique_ptr<Operator>> &tablesWithSelections,
+   vector<pair<BindingAttribute, BindingAttribute>> &joinConditionsCopy
+) const {
+   if(plan->left){ // If not leaf
+      unique_ptr<Operator> leftChild  = recursivePlanToOperator(plan->left , tables, tablesWithSelections, joinConditionsCopy);
+      unique_ptr<Operator> rightChild = recursivePlanToOperator(plan->right, tables, tablesWithSelections, joinConditionsCopy);
+
+      // Joins
+      unique_ptr<Operator> root;
+      bool isJoin = false;
+
+      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ++it){
+         const Register* lhs = tables.at(it -> first .binding)->getOutput(it -> first.attribute);
+         const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+
+         if(
+            (leftChild .get()->containsRegister(lhs) && rightChild.get()->containsRegister(rhs)) ||
+            (rightChild.get()->containsRegister(lhs) && leftChild .get()->containsRegister(rhs))
+         ){
+            if(leftChild->containsRegister(rhs)){
+               swap(lhs, rhs);
+            }
+            root = make_unique<HashJoin>(move(leftChild), move(rightChild), lhs, rhs);
+
+            joinConditionsCopy.erase(it);
+            isJoin = true;
+            break;
+         }
+      }
+
+      if(!isJoin){
+         root = make_unique<CrossProduct>(move(leftChild), move(rightChild));
+      }
+
+      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ){
+         const Register* lhs = tables.at(it -> first .binding)->getOutput(it -> first .attribute);
+         const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
+         if(root->containsRegister(lhs) && root->containsRegister(rhs)){
+            root = make_unique<Selection>(move(root), lhs, rhs);
+
+            it = joinConditionsCopy.erase(it);
+         } else {
+            ++it;
+         }
+      }
+
+      return root;
+   } else { // If leaf
+      const string &binding = relations.at(plan->id).binding;
+      auto ret = move(tablesWithSelections.at(binding));
+      return ret;
    }
+}
 
-   vector<std::unique_ptr<Register>> constants;
+OperatorTree JoinQuery::buildOperatorTree(Database& db, const Plan *plan) const{
+   vector<unique_ptr<Register>> constants;
 
-   map<std::string, Tablescan*> tables;
+   map<string, Tablescan*> tables;
+   map<string, unique_ptr<Operator>> tablesWithSelections;
 
    // Pre-process selections
    map<string, list<pair<BindingAttribute, Constant>>> selectionsMap;
@@ -429,80 +481,22 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
    }
 
    // Relations
-   Table& table = db.getTable(relations.back().table);
-   Tablescan* rightChildPtr = new Tablescan(table);
+   for(const Relation &r: relations){
+      Table& table = db.getTable(r.table);
+      Tablescan* tablescan = new Tablescan(table);
 
-   unique_ptr<Operator> root(rightChildPtr);
+      tables[r.binding] = tablescan;
+      tablesWithSelections.emplace(r.binding, tablescan);
+      unique_ptr<Operator> &root = tablesWithSelections.at(r.binding);
 
-   tables[relations.back().binding] = rightChildPtr;
-
-   // Apply selections
-   applySelections(rightChildPtr, root, selectionsMap[relations.back().binding], constants);
+      // Apply selections
+      applySelections(tablescan, root, selectionsMap[r.binding], constants);
+   }
 
    auto joinConditionsCopy = joinConditions;
 
-   // Relations (and apply selections)
-   for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
-      Table& table = db.getTable(it -> table);
-      Tablescan* leftChildPtr = new Tablescan(table);
+   unique_ptr<Operator> root = recursivePlanToOperator(plan, tables, tablesWithSelections, joinConditionsCopy);
 
-      unique_ptr<Operator> leftChild(leftChildPtr);
-
-      tables[it -> binding] = leftChildPtr;
-
-      applySelections(leftChildPtr, leftChild, selectionsMap[it->binding], constants);
-
-      // Joins
-      auto out = root->getOutput();
-      set<const Register*> outSet(out.begin(), out.end());
-      bool isJoin = false;
-
-      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ++it){
-            if(tables.count(it -> first.binding) && tables.count(it -> second.binding)){
-
-               const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
-               const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
-
-               if(leftChild->containsRegister(rhs)){
-                  swap(lhs, rhs);
-               }
-               root = make_unique<HashJoin>(move(leftChild), move(root), lhs, rhs);
-
-               joinConditionsCopy.erase(it);
-               isJoin = true;
-               break;
-            }
-      }
-
-      if(!isJoin){
-         root = make_unique<CrossProduct>(move(leftChild), move(root));
-      }
-
-      for(auto it = joinConditionsCopy.begin(); it != joinConditionsCopy.end(); ){
-            if(tables.count(it -> first.binding) && tables.count(it -> second.binding)){
-               const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
-               const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
-               root = make_unique<Selection>(move(root), lhs, rhs);
-
-               it = joinConditionsCopy.erase(it);
-            } else {
-               ++it;
-            }
-      }
-
-   }
-
-
-
-
-   /*
-   // Joins
-   for(auto it = joinConditions.rbegin(); it != joinConditions.rend(); ++it) {
-      const Register* lhs = tables.at(it -> first.binding)->getOutput(it -> first.attribute);
-      const Register* rhs = tables.at(it -> second.binding)->getOutput(it -> second.attribute);
-      root = make_unique<Selection>(move(root), lhs, rhs);
-   }
-   */
    // Projection
    vector<const Register*> projectRegisters;
    if(!projection.empty()){
@@ -524,15 +518,24 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
    out.close();
    */
    OperatorTree tree (move(root), move(constants));
-   // Push down Join Relations
 
    return tree;
+}
 
+OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
+// Build a (right-deep) canonical operator tree from the join query with pushed down predicates
+{
+   if(relations.empty()){
+      return OperatorTree(nullptr, vector<unique_ptr<Register>>());
+   }
 
+   Plan *rightChild = new Plan(relations.size()-1);
+   for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
+      int id = (relations.size()-1) - (it-relations.rbegin());
+      rightChild = new Plan(new Plan(id), rightChild);
+   }
 
-
-
-
+   return buildOperatorTree(db, rightChild);
 }
 }
 //---------------------------------------------------------------------------

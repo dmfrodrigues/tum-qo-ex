@@ -3,11 +3,13 @@
 //---------------------------------------------------------------------------
 #include "Register.hpp"
 #include "operator/Tablescan.hpp"
+#include "Plan.hpp"
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 #include <list>
+#include <map>
 //---------------------------------------------------------------------------
 namespace tinydb {
 //---------------------------------------------------------------------------
@@ -93,6 +95,15 @@ struct JoinQuery {
 
 private:
    void applySelections(Tablescan *tablescan, std::unique_ptr<Operator> &tree, const std::list<std::pair<BindingAttribute, Constant>> &selections, std::vector<std::unique_ptr<Register>> &constants) const;
+
+   OperatorTree buildOperatorTree(Database& db, const Plan *plan) const;
+
+   std::unique_ptr<Operator> recursivePlanToOperator(
+      const Plan *plan,
+      const std::map<std::string, Tablescan*> &tables,
+      std::map<std::string, std::unique_ptr<Operator>> &tablesWithSelections,
+      std::vector<std::pair<BindingAttribute, BindingAttribute>> &joinConditionsCopy
+   ) const;
 };
 //---------------------------------------------------------------------------
 }
