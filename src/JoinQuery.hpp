@@ -15,6 +15,7 @@ namespace tinydb {
 //---------------------------------------------------------------------------
 class Database;
 class Operator;
+class QueryGraph;
 //---------------------------------------------------------------------------
 /// Semantic or syntactic errors
 struct IncorrectSqlError : std::runtime_error {
@@ -45,6 +46,7 @@ struct OperatorTree {
 //---------------------------------------------------------------------------
 /// A parsed sql join query
 struct JoinQuery {
+   friend QueryGraph;
    /// Name of a base table
    using TableName = std::string;
    /// Name of a binding

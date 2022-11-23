@@ -6,14 +6,12 @@ struct Plan {
    Plan* right = nullptr;
    int id = -1;
    double cardinality = 0.0;
-   double cost = 0.0;
    explicit Plan(int id, double cardinality): id(id), cardinality(cardinality){}
    explicit Plan(Plan *left, Plan *right, double selectivity):
       left(left),
       right(right),
       cardinality(left->cardinality * right->cardinality * selectivity)
       {}
-   auto operator<(const Plan& p) const { return cost < p.cost; }
    ~Plan(){
       delete left;
       delete right;
@@ -22,6 +20,16 @@ struct Plan {
    uint64_t getBitset() const {
       if(left) return left->getBitset() | right->getBitset();
       else return (uint64_t(1) << id);
+   }
+
+   double calculateCost() const {
+      if(left){
+         double c1 = left->calculateCost();
+         double c2 = right->calculateCost();
+         return c1+c2+cardinality;
+      } else {
+         return 0.0;
+      }
    }
 };
 }

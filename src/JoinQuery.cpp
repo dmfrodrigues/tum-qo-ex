@@ -529,10 +529,10 @@ OperatorTree JoinQuery::buildCanonicalTree(Database& db) const
       return OperatorTree(nullptr, vector<unique_ptr<Register>>());
    }
 
-   Plan *rightChild = new Plan(relations.size()-1);
+   Plan *rightChild = new Plan(relations.size()-1, 1.0);
    for(auto it = ++relations.rbegin(); it != relations.rend(); ++it){
       int id = (relations.size()-1) - (it-relations.rbegin());
-      rightChild = new Plan(new Plan(id), rightChild);
+      rightChild = new Plan(new Plan(id, 1.0), rightChild, 1.0);
    }
 
    return buildOperatorTree(db, rightChild);
