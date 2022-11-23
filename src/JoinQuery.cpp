@@ -462,9 +462,9 @@ unique_ptr<Operator> JoinQuery::recursivePlanToOperator(
 
       return root;
    } else { // If leaf
-      const string &binding = relations.at(plan->id).binding;
-      auto ret = move(tablesWithSelections.at(binding));
-      return ret;
+      const string& binding = relations.at(plan->id).binding;
+      auto root = move(tablesWithSelections.at(binding));
+      return root;
    }
 }
 

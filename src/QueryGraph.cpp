@@ -111,10 +111,12 @@ void QueryGraph::mergePlans(
    //// Delete edges from/to u and v
    for(const auto &p: uAdj){
       const int n = p.first;
+      q.erase(adj[n][u]); q.erase(adj[u][n]);
       adj[n].erase(u);
    }
    for(const auto &p: vAdj){
       const int n = p.first;
+      q.erase(adj[n][v]); q.erase(adj[v][n]);
       adj[n].erase(v);
    }
    adj.at(u).clear();
@@ -122,31 +124,35 @@ void QueryGraph::mergePlans(
    //// Add new edges from/to root
    for(const auto &p: uAdj){
       const int n = p.first;
+      if(n == u || n == v) continue;
+
       const Pedge pe = p.second;
 
-      adj[u].erase(n); adj[n].erase(u);
-
-      if(!adj[u].count(n)){
-         adj[u][n] = adj[n][u] = Pedge {
-            u, n, 1.0, plans[u]->cardinality*plans[n]->cardinality
+      if(!adj[root].count(n)){
+         adj[root][n] = adj[n][root] = Pedge {
+            root, n, 1.0, plans[root]->cardinality*plans[n]->cardinality
          };
       }
-      adj[u][n].selectivity *= pe.selectivity; adj[n][u].selectivity *= pe.selectivity; 
-      adj[u][n].cardinality *= pe.selectivity; adj[n][u].cardinality *= pe.selectivity; 
+      adj[root][n].selectivity *= pe.selectivity; adj[n][root].selectivity *= pe.selectivity; 
+      adj[root][n].cardinality *= pe.selectivity; adj[n][root].cardinality *= pe.selectivity; 
    }
    for(const auto &p: vAdj){
       const int n = p.first;
+      if(n == u || n == v) continue;
+
       const Pedge pe = p.second;
 
-      adj[v].erase(n); adj[n].erase(v);
-
-      if(!adj[v].count(n)){
-         adj[v][n] = adj[n][v] = Pedge {
-            v, n, 1.0, plans[v]->cardinality*plans[n]->cardinality
+      if(!adj[root].count(n)){
+         adj[root][n] = adj[n][root] = Pedge {
+            root, n, 1.0, plans[root]->cardinality*plans[n]->cardinality
          };
       }
-      adj[v][n].selectivity *= pe.selectivity; adj[n][v].selectivity *= pe.selectivity; 
-      adj[v][n].cardinality *= pe.selectivity; adj[n][v].cardinality *= pe.selectivity; 
+      adj[root][n].selectivity *= pe.selectivity; adj[n][root].selectivity *= pe.selectivity; 
+      adj[root][n].cardinality *= pe.selectivity; adj[n][root].cardinality *= pe.selectivity; 
+   }
+
+   for(const auto &p: adj.at(root)){
+      q.insert(p.second);
    }
 }
 
