@@ -462,7 +462,7 @@ unique_ptr<Operator> JoinQuery::recursivePlanToOperator(
 
       return root;
    } else { // If leaf
-      const string& binding = relations.at(plan->id).binding;
+      const string &binding = relations.at(plan->id).binding;
       auto root = move(tablesWithSelections.at(binding));
       return root;
    }
@@ -505,7 +505,10 @@ OperatorTree JoinQuery::buildOperatorTree(Database& db, const Plan *plan) const{
          projectRegisters.at(i) = tables.at(projection.at(i).binding)->getOutput(projection.at(i).attribute);
       }
    } else {
-      projectRegisters = root->getOutput();
+      for(const Relation &r: relations){
+         const auto &out = tables[r.binding]->getOutput();
+         projectRegisters.insert(projectRegisters.end(), out.begin(), out.end());
+      }
    }
 
    root = make_unique<Projection>(move(root), projectRegisters);
