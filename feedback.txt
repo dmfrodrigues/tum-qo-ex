@@ -15,3 +15,11 @@ X key: This would make sense if Y was key, not X. -0.5P
 3.2 (2/2)
 3.3 (4/4)
 Do not forget to update your MatrNrs next time!
+
+Sheet04 (/10)
+4.1 (1/2)
+(r1⨝(r2⨝(r4⨝r3))) Would also be optimal for your example.
+No cross product. A nested loop join is not a cross-product. -1P
+4.2 (4/4)
+Hmm, proof by induction, nice. +0P
+4.3 (4/4)
