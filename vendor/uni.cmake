@@ -67,6 +67,7 @@ add_custom_target(uni
    COMMAND $<TARGET_FILE:AdminExample> insertvalues uni pruefen 28106 5001 2126 1
    COMMAND $<TARGET_FILE:AdminExample> insertvalues uni pruefen 25403 5041 2125 2
    COMMAND $<TARGET_FILE:AdminExample> insertvalues uni pruefen 27550 4630 2137 2
+   COMMAND $<TARGET_FILE:AdminExample> runstats uni
    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/data"
 )
 

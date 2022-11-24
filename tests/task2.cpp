@@ -133,7 +133,6 @@ TEST_CASE("task2") {
       Database db;
       db.createUniDb("tmp.db");
       auto plan = sqlToPlan(db, sql02);
-
       REQUIRE(plan.root);
       CHECK(executeImpl(plan.root) == vector<vector<Register>>{{make_reg("Ethik"s)}, {make_reg("Glaube und Wissen"s)}, {make_reg("Grundzüge"s)}, {make_reg("Grundzüge"s)}, {make_reg("Mäeutik"s)}});
 
@@ -157,6 +156,5 @@ TEST_CASE("task2") {
          JoinQuery jq;
          CHECK(!jq.buildCanonicalTree(db).root);
       }
-
    }
 }

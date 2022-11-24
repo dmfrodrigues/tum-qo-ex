@@ -1,6 +1,6 @@
-#include "JoinQuery.hpp"
 #include "Config.hpp"
 #include "Database.hpp"
+#include "JoinQuery.hpp"
 #include "operator/CrossProduct.hpp"
 #include "operator/Operator.hpp"
 #include "operator/Printer.hpp"

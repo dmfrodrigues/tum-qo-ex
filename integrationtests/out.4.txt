@@ -86,7 +86,7 @@ cost: 0.00
 EMPTY
 ok
 cost: 26.00
-PROJECTION ((TABLE SCAN (vorlesungen)) HASH JOIN ((TABLE SCAN (studenten)) HASH JOIN (TABLE SCAN (hoeren))))
+PROJECTION ((TABLE SCAN (studenten)) HASH JOIN ((TABLE SCAN (vorlesungen)) HASH JOIN (TABLE SCAN (hoeren))))
 --result
 Fichte Grundzüge
 Schopenhauer Grundzüge
