@@ -2,13 +2,7 @@
 # QO
 # ---------------------------------------------------------------------------
 
-stages:
-    - build
-    - test
-    - verify
-
 build_debug:
-    stage: build
     script: 
         - mkdir -p build
         - cd build
@@ -24,7 +18,6 @@ build_debug:
         expire_in: 1 hrs
 
 build_release:
-    stage: build
     script:
         - mkdir -p buildrel
         - cd buildrel
@@ -39,7 +32,8 @@ build_release:
         expire_in: 1 hrs
 
 test_integration:
-    stage: test
+    needs:
+        - build_debug
     script:
         - ./build/IntegrationTester /opt/data/qo/uni/uni integrationtests/in.txt
     artifacts:
@@ -54,7 +48,8 @@ test_integration:
         - build_debug
 
 test_submit:
-    stage: test
+    needs:
+        - build_release
     script:
         - /opt/data/qo/submitter.py /opt/data/qo/submission.socket ./buildrel/IntegrationTester > submissionresult.txt
     artifacts:
@@ -65,105 +60,120 @@ test_submit:
         - build_release
 
 unit1:
-    stage: verify
+    needs:
+        - build_debug
     script:
         - ./build/tester task1
     dependencies:
         - build_debug
 
 unit2:
-    stage: verify
+    needs:
+        - build_debug
     script:
         - ./build/tester task2
     dependencies:
         - build_debug
 
 unit3:
-    stage: verify
+    needs:
+        - build_debug
     script:
         - ./build/tester task3
     dependencies:
         - build_debug
 
 unit4:
-    stage: verify
+    needs:
+        - build_debug
     script:
         - ./build/tester task4
     dependencies:
         - build_debug
 
 unit5:
-    stage: verify
+    needs:
+        - build_debug
     script:
         - ./build/tester task5
     dependencies:
         - build_debug
 
 integ1:
-    stage: verify
+    needs:
+        - test_integration
     script:
-        - diff ./out.1.txt ./integrationtests/out.1.txt
+        - diff -b ./out.1.txt ./integrationtests/out.1.txt
     dependencies:
         - test_integration
 
 integ2:
-    stage: verify
+    needs:
+        - test_integration
     script:
-        - diff ./out.2.txt ./integrationtests/out.2.txt
+        - diff -b ./out.2.txt ./integrationtests/out.2.txt
     dependencies:
         - test_integration
 
 integ3:
-    stage: verify
+    needs:
+        - test_integration
     script:
-        - diff ./out.3.txt ./integrationtests/out.3.txt
+        - diff -b ./out.3.txt ./integrationtests/out.3.txt
     dependencies:
         - test_integration
 
 integ4:
-    stage: verify
+    needs:
+        - test_integration
     script:
-        - diff ./out.4.txt ./integrationtests/out.4.txt
+        - diff -b ./out.4.txt ./integrationtests/out.4.txt
     dependencies:
         - test_integration
 
 integ5:
-    stage: verify
+    needs:
+        - test_integration
     script:
-        - diff ./out.5.txt ./integrationtests/out.5.txt
+        - diff -b ./out.5.txt ./integrationtests/out.5.txt
     dependencies:
         - test_integration
 
 hidden1:
-    stage: verify
+    needs:
+        - test_submit
     script:
         - grep -q 'Task 1 success' submissionresult.txt
     dependencies:
         - test_submit
 
 hidden2:
-    stage: verify
+    needs:
+        - test_submit
     script:
         - grep -q 'Task 2 success' submissionresult.txt
     dependencies:
         - test_submit
 
 hidden3:
-    stage: verify
+    needs:
+        - test_submit
     script:
         - grep -q 'Task 3 success' submissionresult.txt
     dependencies:
         - test_submit
 
 hidden4:
-    stage: verify
+    needs:
+        - test_submit
     script:
         - grep -q 'Task 4 success' submissionresult.txt
     dependencies:
         - test_submit
 
 hidden5:
-    stage: verify
+    needs:
+        - test_submit
     script:
         - grep -q 'Task 5 success' submissionresult.txt
     dependencies:
