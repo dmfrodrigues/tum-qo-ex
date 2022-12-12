@@ -2,6 +2,9 @@
 #include "QueryGraph.hpp"
 #include <cmath>
 #include <set>
+
+#include "Bitset.hpp"
+
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -75,7 +78,7 @@ QueryGraph QueryGraph::fromJoinQuery(Database& db, const JoinQuery& jq)
    return graph;
 }
 
-const double epsilon = 1e-9;
+const double epsilon = 1e-5;
 bool equal(double a, double b){
    return fabs(a-b) < epsilon;
 }
@@ -236,7 +239,79 @@ OptimizerResult QueryGraph::runGOO(Database& db)
 OptimizerResult QueryGraph::runDP(Database& db)
 // Run dynamic programming. Left side of the join should be the smaller side. You can assume number of relations < 64
 {
-   throw NotImplementedError{"should be implemented for task 5"};
+   if(nodes.size() == 0)
+      return OptimizerResult{0.0, OperatorTree(nullptr, {})};
+
+   // Preprocessing
+   map<int, Bitset> adj;
+   map<int, map<int, double>> adjInt;
+   for(const auto &p: adjacencyList){
+      const vector<Edge> &edges = p.second;
+      for(const Edge &e: edges){
+         const int &u = e.one.first.id;
+         const int &v = e.two.first.id;
+         adj[u].insert(v);
+         adj[v].insert(u);
+         adjInt[u][v] = e.getSelectivity();
+         adjInt[v][u] = e.getSelectivity();
+      }
+   }
+
+   // DP
+   map<Bitset, Plan*> DP;
+   for(const auto &p: nodes){
+      const string &binding = p.first;
+      const Node &node = p.second;
+      Bitset s; s.insert(node.id);
+      DP[s] = new Plan(node.id, node.getCardinality());
+   }
+
+   const size_t &N = nodes.size();
+   for(int64_t i = 1; i < (int64_t(1) << N); ++i){
+      Bitset S(i);
+
+      for(Bitset S1 = S.begin(); S1 != S.end(); S1.next(S)){
+         const Bitset &S2 = S.except(S1);
+
+         double selectivity = 1.0;
+
+         for(int n1 = 0; n1 < N; ++n1){
+            if(!S1.contains(n1)) continue;
+            for(int n2 = 0; n2 < N; ++n2){
+               if(!S2.contains(n2) || n1 == n2) continue;
+               if(adjInt[n1].count(n2)){
+                  selectivity *= adjInt.at(n1).at(n2);
+               }
+            }
+         }
+
+         bool connected = (selectivity != 1.0);
+         if(connected){
+            Plan *p1 = DP[S1];
+            Plan *p2 = DP[S2];
+            if(p1 == nullptr || p2 == nullptr) continue;
+            if(p1->cardinality > p2->cardinality){
+               swap(p1, p2);
+            }
+            Plan *P = new Plan(p1, p2, selectivity);
+            if(DP[S] == nullptr) DP[S] = P;
+            else {
+               const double &oldCost = DP[S]->calculateCost();
+               const double &newCost = P->calculateCost();
+               if(!equal(oldCost, newCost) && oldCost > newCost) {
+                  DP[S]->left = DP[S]->right = nullptr;
+                  delete DP[S];
+                  DP[S] = P;
+               }
+            }
+         }
+      }
+   }
+
+   Plan *plan = DP[Bitset::fullSet(N)];
+   const double &cost = plan->calculateCost();
+
+   return OptimizerResult{cost, joinQuery.buildOperatorTree(db, plan)};
 }
 //---------------------------------------------------------------------------
 QueryGraph::Node::Node(std::string name, Table& table, std::vector<std::pair<JoinQuery::BindingAttribute, JoinQuery::Constant>> predicates, int id) noexcept
