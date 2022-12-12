@@ -6,6 +6,7 @@ struct Plan {
    Plan* right = nullptr;
    int id = -1;
    double cardinality = 0.0;
+   mutable double cost = -1.0;
    explicit Plan(int id, double cardinality): id(id), cardinality(cardinality){}
    explicit Plan(Plan *left, Plan *right, double selectivity):
       left(left),
@@ -23,12 +24,14 @@ struct Plan {
    }
 
    double calculateCost() const {
+      if(cost != -1.0) return cost;
+
       if(left){
          double c1 = left->calculateCost();
          double c2 = right->calculateCost();
-         return c1+c2+cardinality;
+         return cost = c1+c2+cardinality;
       } else {
-         return 0.0;
+         return cost = 0.0;
       }
    }
 };
