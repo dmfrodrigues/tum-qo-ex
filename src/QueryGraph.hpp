@@ -67,6 +67,8 @@ struct QueryGraph {
    /// Run dynamic programming. Left side of the join should be the smaller side. You can assume number of relations < 64
    OptimizerResult runDP(Database& db);
 
+   OptimizerResult runQuickPick(Database& db);
+
    /// Build query graph from a parsed join query
    static QueryGraph fromJoinQuery(Database& db, const JoinQuery& jq);
 

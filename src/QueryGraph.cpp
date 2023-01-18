@@ -2,7 +2,7 @@
 #include "QueryGraph.hpp"
 #include <cmath>
 #include <set>
-
+#include <random>
 #include "Bitset.hpp"
 
 //---------------------------------------------------------------------------
@@ -319,7 +319,7 @@ QueryGraph::Node::Node(std::string name, Table& table, std::vector<std::pair<Joi
 //---------------------------------------------------------------------------
 double QueryGraph::Node::getCardinality() const{
    double cardinality = table.getCardinality();
-
+   
    for(auto predicate: predicates){
       /*
       switch(predicate.second.getState()) {
@@ -350,5 +350,62 @@ double QueryGraph::Edge::getSelectivity() const {
 
 }
 //---------------------------------------------------------------------------
+
+
+OptimizerResult QueryGraph::runQuickPick(Database& db){
+   UnionFind uf(nodes.size());
+
+   // Build map of all trees
+   std::map<u_int64_t, Plan*> trees;
+   for(const auto &p: nodes){
+      const Node &node = p.second;
+      auto temp = new Plan(node.id, node.getCardinality());
+      trees[temp->getBitset()] = temp;
+   }
+
+   vector<int> edges_temp(edges.size());
+   std::iota(std::begin(edges_temp), std::end(edges_temp), 0);
+   
+   while(trees.size() > 1){
+      // Choose randodm edge
+      int rIndex = rand() % edges_temp.size();
+      auto &e = edges.at(edges_temp.at(rIndex));
+
+      // Find trees that contain the relations from the edge
+      Plan* tree1 = nullptr;
+      Plan* tree2 = nullptr;
+      // Propably union find
+      // This is not fast and cool
+      for(auto tree: trees){
+         auto bitset = Bitset(tree.second->getBitset());
+         if(bitset.contains(e.one.first.id)){
+            tree1 = tree.second;
+         } else if(bitset.contains(e.two.first.id)){
+            tree2 = tree.second;
+         }
+      }
+
+      //std::cout << "Tree1: " << tree1->getBitset() << " UF: " << uf.findSet(e.one.first.id) << std::endl;
+      //std::cout << "Tree2: " << tree2->getBitset() << " UF: " << uf.findSet(e.two.first.id) << std::endl;
+
+      // Check if edge is not already in subtree
+
+      if(tree1 && tree2){
+         auto newPlan = new Plan(tree1, tree2, e.getSelectivity());
+         trees[newPlan->getBitset()] = newPlan;
+         // Remove old plans from list
+         //uf.unionSet(newPlan->left->getBitset(), newPlan->right->getBitset());
+         trees.erase(newPlan->left->getBitset());
+         trees.erase(newPlan->right->getBitset());
+      }
+      // Remove selected edge
+      edges_temp.erase(edges_temp.begin() + rIndex);
+   }
+   
+   auto tree = trees.begin()->second;
+   std::cout << "[" << tree->calculateCost() <<"] " << tree->toString()  << std::endl;
+
+   return OptimizerResult{tree->calculateCost() , joinQuery.buildOperatorTree(db, tree)};
+}
 }
 

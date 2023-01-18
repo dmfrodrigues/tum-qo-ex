@@ -7,7 +7,7 @@
 # ---------------------------------------------------------------------------
 
 list(APPEND EXAMPLES_SRC examples/ChiExample.cpp examples/JoinExample.cpp examples/ScanExample.cpp examples/SelectExample.cpp examples/AdminExample.cpp examples/IntegrationTester.cpp)
-list(APPEND EXAMPLES_SRC examples/TPCHExample.cpp) #append your own targets here
+list(APPEND EXAMPLES_SRC examples/TPCHExample.cpp examples/QuickPickExample.cpp) #append your own targets here
 
 # ---------------------------------------------------------------------------
 # Executables

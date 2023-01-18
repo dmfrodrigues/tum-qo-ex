@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace tinydb {
 struct Plan {
@@ -33,6 +34,11 @@ struct Plan {
       } else {
          return cost = 0.0;
       }
+   }
+
+   std::string toString() const{
+      if(left) return ("(" + left->toString() + " JOIN " + right->toString() + ")");
+      return std::to_string(id);
    }
 };
 }
