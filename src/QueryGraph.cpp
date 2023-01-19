@@ -367,8 +367,14 @@ OptimizerResult QueryGraph::runQuickPick(Database& db){
    // Representation of edges
    vector<int> edges_temp(edges.size());
    std::iota(std::begin(edges_temp), std::end(edges_temp), 0); // Fill with nums form 0 -> size-1
-   std::random_shuffle(edges_temp.begin(), edges_temp.end()); // shuffle all nums to generate random ordder
    int index = 0; // Current random edge
+
+   // Shuffle randomly
+   for(int i = edges_temp.size() - 1; i > 0; i--){
+      int r = rand() % i;
+      std::swap(edges_temp[i], edges_temp[r]);
+   }
+
    
    while(treeSize > 1){
       // Get current randodm edge
