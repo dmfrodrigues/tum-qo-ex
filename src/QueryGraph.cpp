@@ -355,54 +355,41 @@ double QueryGraph::Edge::getSelectivity() const {
 OptimizerResult QueryGraph::runQuickPick(Database& db){
    UnionFind uf(nodes.size());
 
-   // Build map of all trees
-   std::map<u_int64_t, Plan*> trees;
-   for(const auto &p: nodes){
-      const Node &node = p.second;
-      auto temp = new Plan(node.id, node.getCardinality());
-      trees[temp->getBitset()] = temp;
+   std::vector<Plan*> trees(nodes.size());
+   int treeSize = nodes.size();
+
+   // Initialize trees with all basic relations, in order of ids
+   for(const auto &n: nodes){
+      const Node &node = n.second;
+      trees[node.id] = new Plan(node.id, node.getCardinality(), node.name);
    }
 
+   // Representation of edges
    vector<int> edges_temp(edges.size());
-   std::iota(std::begin(edges_temp), std::end(edges_temp), 0);
+   std::iota(std::begin(edges_temp), std::end(edges_temp), 0); // Fill with nums form 0 -> size-1
+   std::random_shuffle(edges_temp.begin(), edges_temp.end()); // shuffle all nums to generate random ordder
+   int index = 0; // Current random edge
    
-   while(trees.size() > 1){
-      // Choose randodm edge
-      int rIndex = rand() % edges_temp.size();
-      auto &e = edges.at(edges_temp.at(rIndex));
+   while(treeSize > 1){
+      // Get current randodm edge
+      auto &e = edges.at(edges_temp.at(index++));
 
       // Find trees that contain the relations from the edge
-      Plan* tree1 = nullptr;
-      Plan* tree2 = nullptr;
-      // Propably union find
-      // This is not fast and cool
-      for(auto tree: trees){
-         auto bitset = Bitset(tree.second->getBitset());
-         if(bitset.contains(e.one.first.id)){
-            tree1 = tree.second;
-         } else if(bitset.contains(e.two.first.id)){
-            tree2 = tree.second;
-         }
+      Plan* tree1 = trees[uf.findSet(e.one.first.id)];
+      Plan* tree2 = trees[uf.findSet(e.two.first.id)];
+      auto newPlan = new Plan(tree1, tree2, e.getSelectivity());
+
+      // Add updated treen
+      if(tree1 != tree2){
+         uf.unionSet(e.one.first.id, e.two.first.id);
+         trees[uf.findSet(e.one.first.id)] = newPlan;
+         treeSize--;
+      } else {
+         // Double edge
       }
-
-      //std::cout << "Tree1: " << tree1->getBitset() << " UF: " << uf.findSet(e.one.first.id) << std::endl;
-      //std::cout << "Tree2: " << tree2->getBitset() << " UF: " << uf.findSet(e.two.first.id) << std::endl;
-
-      // Check if edge is not already in subtree
-
-      if(tree1 && tree2){
-         auto newPlan = new Plan(tree1, tree2, e.getSelectivity());
-         trees[newPlan->getBitset()] = newPlan;
-         // Remove old plans from list
-         //uf.unionSet(newPlan->left->getBitset(), newPlan->right->getBitset());
-         trees.erase(newPlan->left->getBitset());
-         trees.erase(newPlan->right->getBitset());
-      }
-      // Remove selected edge
-      edges_temp.erase(edges_temp.begin() + rIndex);
    }
    
-   auto tree = trees.begin()->second;
+   auto tree = trees[uf.findSet(0)];
    std::cout << "[" << tree->calculateCost() <<"] " << tree->toString()  << std::endl;
 
    return OptimizerResult{tree->calculateCost() , joinQuery.buildOperatorTree(db, tree)};

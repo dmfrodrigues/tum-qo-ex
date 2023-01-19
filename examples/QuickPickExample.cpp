@@ -14,14 +14,15 @@ using namespace std;
 //---------------------------------------------------------------------------
 
 int main(int argc, char* argv[]){
-    //string dbName = argv[1], query = argv[2];
-
-    string query = "select * from hoeren h, vorlesungen v, studenten s, pruefen pr, professoren prof where h.vorlnr = v.vorlnr and h.matrnr = s.matrnr and pr.matrnr = s.matrnr and pr.vorlnr = v.vorlnr and prof.persnr = pr.persnr";
+    string dbPath = argv[1];
+    string query = "select l.l_orderkey from lineitem l, orders o, customer c, nation n, supplier s, partsupp ps , part p, region r where l.l_orderkey = o. o_orderkey and o.o_custkey = c.c_custkey and c.c_nationkey = n. n_nationkey and l.l_suppkey = s.s_suppkey and s.s_nationkey = n.n_nationkey and n.n_regionkey = r.r_regionkey and l.l_partkey = ps.ps_partkey and l.l_suppkey = ps.ps_suppkey and l.l_partkey = p.p_partkey";
+    
     tinydb::Database db;
-    db.createUniDb("temp");
+    db.open(dbPath);
 
     auto jq = tinydb::JoinQuery::parseAndAnalyseJoinQuery(db, query);
     auto queryGraph = tinydb::QueryGraph::fromJoinQuery(db, jq);
+
     for(int i = 0; i < 1000; i++){
         auto tree = queryGraph.runQuickPick(db);
     }

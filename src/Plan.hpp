@@ -6,9 +6,11 @@ struct Plan {
    Plan* left = nullptr;
    Plan* right = nullptr;
    int id = -1;
+   std::string name = "";
    double cardinality = 0.0;
    mutable double cost = -1.0;
    explicit Plan(int id, double cardinality): id(id), cardinality(cardinality){}
+   explicit Plan(int id, double cardinality, std::string name): id(id), cardinality(cardinality), name(name){}
    explicit Plan(Plan *left, Plan *right, double selectivity):
       left(left),
       right(right),
@@ -38,7 +40,7 @@ struct Plan {
 
    std::string toString() const{
       if(left) return ("(" + left->toString() + " JOIN " + right->toString() + ")");
-      return std::to_string(id);
+      return name != "" ? name : std::to_string(id);
    }
 };
 }
