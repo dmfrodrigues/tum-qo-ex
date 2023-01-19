@@ -367,7 +367,6 @@ OptimizerResult QueryGraph::runQuickPick(Database& db){
    // Representation of edges
    vector<int> edges_temp(edges.size());
    std::iota(std::begin(edges_temp), std::end(edges_temp), 0); // Fill with nums form 0 -> size-1
-   int index = 0; // Current random edge
 
    // Shuffle randomly
    for(int i = edges_temp.size() - 1; i > 0; i--){
@@ -375,30 +374,49 @@ OptimizerResult QueryGraph::runQuickPick(Database& db){
       std::swap(edges_temp[i], edges_temp[r]);
    }
 
-   
+   list<int> edgesList(edges_temp.begin(), edges_temp.end());
+
    while(treeSize > 1){
       // Get current randodm edge
-      auto &e = edges.at(edges_temp.at(index++));
+      auto &e = edges.at(edgesList.front());
 
       // Find trees that contain the relations from the edge
-      Plan* tree1 = trees[uf.findSet(e.one.first.id)];
-      Plan* tree2 = trees[uf.findSet(e.two.first.id)];
-      auto newPlan = new Plan(tree1, tree2, e.getSelectivity());
+      auto r1 = uf.findSet(e.one.first.id);
+      auto r2 = uf.findSet(e.two.first.id);
+
+      Plan* tree1 = trees[r1];
+      Plan* tree2 = trees[r2];
+
+      // Calculate selectivity
+      double selectivity = 1;
+      for(auto it = edgesList.begin(); it != edgesList.end(); ){
+         auto &uv = edges.at(*it);
+         auto u = uv.one.first.id;
+         auto v = uv.two.first.id;
+         int ru = uf.findSet(u);
+         int rv = uf.findSet(v);
+
+         if((ru == r1 && rv == r2) || (ru == r2 && rv == r1)){
+            selectivity *= uv.getSelectivity();
+            it = edgesList.erase(it);
+         } else {
+            ++it;
+         }
+      }
+
+      auto newPlan = new Plan(tree1, tree2, selectivity);
 
       // Add updated treen
-      if(tree1 != tree2){
-         uf.unionSet(e.one.first.id, e.two.first.id);
-         trees[uf.findSet(e.one.first.id)] = newPlan;
-         treeSize--;
-      } else {
-         // Double edge
-      }
+      uf.unionSet(e.one.first.id, e.two.first.id);
+      trees[uf.findSet(e.one.first.id)] = newPlan;
+      treeSize--;
    }
    
    auto tree = trees[uf.findSet(0)];
-   std::cout << "[" << tree->calculateCost() <<"] " << tree->toString()  << std::endl;
-
    return OptimizerResult{tree->calculateCost() , joinQuery.buildOperatorTree(db, tree)};
 }
+
 }
+
+
 
