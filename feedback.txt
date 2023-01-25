@@ -55,3 +55,15 @@ benefit((R0 join (R3 join R2)) join R1, (R0 join R1) join (R3 join R2))
 Note how (R3 join R2) is always done before as that was decided beforehand.
 No points deducted as I do not want to deduct a quarter point :)
 8.3 (4/4)
+Sheet09 (8/10)
+9.1 (2/4)
+Missing conflict between \rightouterjoin_{C,E} and \join_{C, D} -1P
+The correct two hyperedges should be ({B}, {C,D,E}) and ({E}, {C,D}) -1P
+9.2 (6/6)
+Sheet10 (9/10)
+10.1 (3/3)
+10.2 (2.5/3)
+Where are the labels? -0.5P
+10.3 (3.5/4)
+{B,C} is not explored until a transformation is applied to A⋈{B,C}.
+{A,C} is not explored until a transformaiton is applied to B⋈{A,C}. -0.5P
