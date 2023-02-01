@@ -67,3 +67,10 @@ Where are the labels? -0.5P
 10.3 (3.5/4)
 {B,C} is not explored until a transformation is applied to A⋈{B,C}.
 {A,C} is not explored until a transformaiton is applied to B⋈{A,C}. -0.5P
+Sheet11(10/10)
+11.1(5/5)
+11.2(5/5)
+(rand() % N) is not uniformly random in range [0, N).
+You should use std::uniform_int_distribution or even better:
+https://lemire.me/blog/2019/06/06/nearly-divisionless-random-integer-generation-on-various-systems/
+
