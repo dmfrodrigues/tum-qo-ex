@@ -74,3 +74,11 @@ Sheet11(10/10)
 You should use std::uniform_int_distribution or even better:
 https://lemire.me/blog/2019/06/06/nearly-divisionless-random-integer-generation-on-various-systems/
 
+
+Sheet12(9/10)
+12.1(4.5/5)
+The ordered list encoding of the bushy tree is 2143. -0.5P
+You could encode the order of R4⋈(R3⋈R5) using 41 instead of 14.
+12.2(4.5/5)
+What is the cost of the optimal tree? -0.5P
+It should be the top-rightmost cost in the table.
