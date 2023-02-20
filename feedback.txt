@@ -82,3 +82,21 @@ You could encode the order of R4⋈(R3⋈R5) using 41 instead of 14.
 12.2(4.5/5)
 What is the cost of the optimal tree? -0.5P
 It should be the top-rightmost cost in the table.
+
+Sheet13(10/10)
+13.1(2/2)
+13.2(2/2)
+13.3(2/2)
+~=
+13.4(2/2)
+13.5(2/2)
+
+Sheet14(10/10):
+14.1(4/4)
+Please prefer exact solutions inplace of approximations.
+You must explicitly specify that the fraction is repeating for it to be exact.
+Also, show your work in the exam.
+14.2(2/2)
+14.3(4/4)
+
+Bonus achieved: 3741982 3770446
